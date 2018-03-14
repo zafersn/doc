@@ -167,3 +167,103 @@ Scan duration = 15.36 ms · (2scanDuration + 1)
 ```
 
 Örnekte scanDuration parametresi, 16 kanalın her birinde yaklaşık 0,5 saniyeliğine tarama yapılmasını ister. Tarama isteği mesajı MLME'ye başarılı bir şekilde gönderildikten sonra, tarama başlatılır ve bir tarama onayı (msgType == gNwkScanCnf_c ile bir nwkMessage_t struct), MLME'den NWK'ye gönderilen mesajlar için SAP işleyicisinde asenkronize olarak alınır. Aşağıdaki kod tarama onay mesajını işler.
+
+```
+static void App_HandleScanEdConfirm(nwkMessage_t *pMsg)
+{
+uint8_t n, minEnergy;
+uint8_t *pEdList;
+uint8_t Channel;
+uint8_t idx;
+uint32_t chMask = mDefaultValueOfChannel_c;
+Serial_Print(interfaceId,"Received the MLME-Scan Confirm message from the MAC\n\r",
+gAllowToBlock_d);
+/* Get a pointer to the energy detect results */
+pEdList = pMsg->msgData.scanCnf.resList.pEnergyDetectList;
+/* Set the minimum energy to a large value */
+minEnergy = 0xFF;
+/* Select default channel */
+mLogicalChannel = 11;
+/* Search for the channel with least energy */
+for(idx=0, n=0; n<16; n++)
+{
+/* Channel numbering is 11 to 26 both inclusive */
+Channel = n + 11;
+if( (chMask & (1 << Channel)) )
+{
+if( pEdList[idx] < minEnergy )
+{
+minEnergy = pEdList[idx];
+mLogicalChannel = Channel;
+}
+idx++;
+}
+}
+chMask &= ~(1 << mLogicalChannel);
+/* Print out the result of the ED scan */
+Serial_Print(interfaceId,"ED scan returned the following results:\n\r [",
+gAllowToBlock_d);
+Serial_PrintHex(interfaceId,pEdList, 16, gPrtHexBigEndian_c | gPrtHexSpaces_c);
+
+Serial_Print(interfaceId,"]\n\r\n\r", gAllowToBlock_d);
+/* Print out the selected logical channel */
+Serial_Print(interfaceId,"Based on the ED scan the logical channel 0x", gAllowToBlock_d);
+Serial_PrintHex(interfaceId,&mLogicalChannel, 1, gPrtHexNoFormat_c);
+Serial_Print(interfaceId," was selected\n\r", gAllowToBlock_d);
+/* The list of detected energies must be freed. */
+MSG_Free(pEdList);
+}
+
+```
+Taramanın başarılı olduğunu (status == gSuccess_c) ve nwkMessage_t yapısının pMsg işaretçisi pMsg = pMsg-> msgData.scanCnf.resList.pEnergyDetectList öğesinin 16 baytlık bayt dizisine işaret ettiğini varsayalım. Her kanal için bir bayt. pEdList [0], kanal 11 için sonucu içerir, pEdList [1], kanal 12 için sonuç içerir ve böyle devam eder.
+
+Enerji algılama taramasının sonuçları alındıktan sonra, tüm kanallardan alınan sonuçlara bakın. Mantıksal kanal tarama için seçilen tüm kanallardan minimum enerji algılama seviyesine sahip olacaktır. Bu kanal numarasını, mLogicalChannel adlı global bir değişkende saklayın.
+
+Sadece tarama onaylama mesajını değil, aynı zamanda pEdList ve ücretsiz pEdList tarafından işaret edilen veri yapılarını da boşaltmayı unutmayın (kullanıcılar, enerji düzeylerinin listesini serbest bırakmak için kullanabilecekleri bir pEdList kopyasına sahip olmadıkça).
+
+ED taramasının bir kanalda etkinlik göstermeyen bir sonuç vermesi nedeniyle, başka bir PAN koordinatörünün bu kanalı kullanmadığı anlamına gelmez. Bu sadece, ED taramasını gerçekleştirirken bu PAN koordinatörü ve aygıtları arasında hiçbir işlemin gerçekleşmediği anlamına gelir.
+Daha uzun bir süre boyunca tarama yapılması, başka bir PAN koordinatörünün kanalda bulunması olasılığını artırır ve tespit edilir, ancak garanti edilmez.
+MyWirelessApp Demo Non Beacon projesinden uygulama kaynak dosyasında, aşağıdaki kod örneğinde gösterildiği gibi, gelen MLME mesajlarını sıraya koymak ve MLME'yi uygulamadan ayırmak için kod eklendiğine dikkat edin.
+```
+/* Application input queues */
+static anchor_t mMlmeNwkInputQueue;
+resultType_t MLME_NWK_SapHandler (nwkMessage_t* pMsg, instanceId_t instanceId)
+{
+/* Put the incoming MLME message in the applications input queue. */
+MSG_Queue(&mMlmeNwkInputQueue, pMsg);
+OSA_EventSet(&mAppEvent, gAppEvtMessageFromMLME_c);
+return gSuccess_c;
+}
+
+```
+
+Ayrıca, uygulama görevinde, bu kod örneğinde gösterildiği gibi bu sıradaki gelen iletileri işlemek için kod eklenmiştir.
+```
+/* We have an event from MLME_NWK_SapHandler */
+if (events & gAppEvtMessageFromMLME_c)
+{
+pMsgIn = MSG_DeQueue(&mMlmeNwkInputQueue);
+… /* Process message if pMsgIn!=NULL */
+/* Messages from the MLME must always be freed. */
+MEM_BufferFree(pMsgIn);
+}
+```
+
+MLME'yi NWK SAP işleyicisine bu şekilde uygulayarak, MLME ve NWK / APP tamamen ayrıştırılır. Yani SAP işleyicisi yalnızca iletiyi sıraya alır ancak iletinin işlenmesini yapmaz. Bu şekilde MLME, çağrıdan mümkün olduğu kadar hızlı döner ve MCU'nun çağrı yığını, bir çağrı yığınının taşma riskini azaltır.
+
+## 2.4.6. Short address seçimi
+
+Şimdi koordinatör kendini kısa bir adrese atamalı. Tüm Freescale geliştirme kartları önceden belirlenmiş bir adresle gelir, ancak PAN'a başlamadan önce kısa bir adres atanmalıdır. Aksi takdirde, başlangıç isteği başarısız olur. PAN koordinatörü, kendi PAN'sine katılan ilk birim olduğundan, kendisi için herhangi bir kısa adresi seçebilir. Kısa adres seçildiğinde, genellikle kodlanır, macShortAddress PIB özniteliği ayarlanarak ayarlanmalıdır. Bu, aşağıdaki örnek kodda gösterilen pp_StartCoordinator () içinde yapılır.
+```
+/* We must always set the short address to something
+else than 0xFFFF before starting a PAN. */
+pMsg->msgType = gMlmeSetReq_c;
+pMsg->msgData.setReq.pibAttribute = gMPibShortAddress_c;
+pMsg->msgData.setReq.pibAttributeValue = (uint8_t *)&mShortAddress;
+(void)NWK_MLME_SapHandler( pMsg, macInstance );
+```
+Yukarıdaki kod örneğinde, PAN koordinatörünün kısa adresi maShortAddress değerine ayarlanır. Sıfırlama talebi olarak MLME-SET.request de senkronize olarak tamamlanır.
+Bu nedenle, NWK_MLME_SapHandler () öğesini çağırdıktan sonra ret == gSuccess_c ise, PIB özelliği başarıyla ayarlandı. PibAttributeValue parametresi MLME tarafından serbest bırakılmaz.
+Kısa adres 0xFFFF'den farklı olmalıdır. 0xFFFE'nin kısa bir adresi, koordinatörün tüm işlemlerde uzun adresini kullanmasını söyler. Kısa adres 0xFFFF ve 0xFFFE'den farklı bir değere ayarlanmışsa, PAN koordinatörü bu adresi genişletilmiş adresi yerine kullanır ve böylece daha kısa paketler gönderir. Genişletilmiş bir adres 8 bayt uzunluğundadır ve kısa bir adres 2 bayt uzunluğundadır.
+
+
