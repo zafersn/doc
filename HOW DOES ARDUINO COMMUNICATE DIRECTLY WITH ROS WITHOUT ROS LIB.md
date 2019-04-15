@@ -76,6 +76,7 @@ void encoder_kesme_b()
 }
 </pre>
 ```
+
 <h3 id="_interrupt_numbers" class="float">Interrupt Numbers</h3>
 <div class="paragraph">
 <p>Normally you should use digitalPinToInterrupt(pin), rather than place an interrupt number directly into your sketch. The specific pins with interrupts, and their mapping to interrupt number varies on each type of board. Direct use of interrupt numbers may seem simple, but it can cause compatibility trouble when your sketch is run on a different board.</p>
