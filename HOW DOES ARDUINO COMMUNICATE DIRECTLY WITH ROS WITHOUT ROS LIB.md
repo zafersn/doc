@@ -11,7 +11,7 @@
 <h2>ARDUINO CODE:</h2>
 
 ```
-<pre class="lang:c decode:true" title="Arduino Code">#include "Arduino.h"
+#include "Arduino.h"
 
 int encoder_a=2;   // encoder 2 and 3 will be connected to pine
 int encoder_b=3;
@@ -75,7 +75,6 @@ void encoder_kesme_b()
       else pozisyon--;
   }
 }
-</pre>
 
 ```
 
@@ -173,14 +172,13 @@ void encoder_kesme_b()
 <p> </p>
 
 ```
-
-<pre class="lang:c++ decode:true" title="ROS">#include "ros/ros.h"
-#include &lt;sensor_msgs/JointState.h&gt;
-#include &lt;std_msgs/Header.h&gt;
+#include "ros/ros.h"
+#include <sensor_msgs/JointState.h>;
+#include <std_msgs/Header.h>;
 #include "serial/serial.h"
-#include &lt;string&gt;
-#include &lt;iostream&gt;
-#include &lt;cstdio&gt;
+#include <string>;
+#include <iostream>;
+#include <cstdio>;
 
 using std::string;
 
@@ -273,7 +271,7 @@ double degreTOrad(double degre){   //degre to radyan for rviz
   
   return (degre/57.2958);
   
-  }</pre>
+  }  
   
   ```
   
@@ -284,6 +282,7 @@ double degreTOrad(double degre){   //degre to radyan for rviz
 <p>You must install serial communication libraries before you run the application.</p>
 <p><a href="http://wiki.ros.org/serial">click here</a> to follow the directions.</p>
 <p> </p>
+
 ```
 <pre class="lang:xhtml decode:true " title="CMakeList.txt">cmake_minimum_required(VERSION 2.8.3)
 project(lidar_package)
