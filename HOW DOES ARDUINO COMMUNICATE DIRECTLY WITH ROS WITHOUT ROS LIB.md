@@ -7,8 +7,9 @@
 <p> </p>
 <p> </p>
 <h2>WIRING DIAGRAM:</h2>
-<p><a href="http://stackcuriosity.com/wp-content/uploads/2017/12/fritzing.png"><img class="aligncenter size-large wp-image-1514" src="http://stackcuriosity.com/wp-content/uploads/2017/12/fritzing-1024x704.png" alt="" width="1024" height="704" /></a></p>
+<p><a href="https://github.com/zafersn/doc/blob/master/img/how-does-arduino-communicate-directly-with-ros.png"><img class="aligncenter size-large wp-image-1514" src="http://stackcuriosity.com/wp-content/uploads/2017/12/fritzing-1024x704.png" alt="" width="1024" height="704" /></a></p>
 <h2>ARDUINO CODE:</h2>
+```
 <pre class="lang:c decode:true" title="Arduino Code">#include "Arduino.h"
 
 int encoder_a=2;   // encoder 2 and 3 will be connected to pine
@@ -74,6 +75,7 @@ void encoder_kesme_b()
   }
 }
 </pre>
+```
 <h3 id="_interrupt_numbers" class="float">Interrupt Numbers</h3>
 <div class="paragraph">
 <p>Normally you should use digitalPinToInterrupt(pin), rather than place an interrupt number directly into your sketch. The specific pins with interrupts, and their mapping to interrupt number varies on each type of board. Direct use of interrupt numbers may seem simple, but it can cause compatibility trouble when your sketch is run on a different board.</p>
@@ -166,6 +168,7 @@ void encoder_kesme_b()
 <p> </p>
 <p>I use "sensor_msgs :: JointState" to broadcast the encoder message on the ROS.  Here, the data received via usb is converted to the message type "sensor_MSGS :: JointState". See for <a href="http://docs.ros.org/api/sensor_msgs/html/msg/JointState.html">detail</a> .</p>
 <p> </p>
+```
 <pre class="lang:c++ decode:true" title="ROS">#include "ros/ros.h"
 #include &lt;sensor_msgs/JointState.h&gt;
 #include &lt;std_msgs/Header.h&gt;
@@ -266,6 +269,7 @@ double degreTOrad(double degre){   //degre to radyan for rviz
   return (degre/57.2958);
   
   }</pre>
+  ```
 <p> </p>
 <p> </p>
 <h2>ROS CMakeList.txt Add SERIAL LIBRARY FOR USB COMMUNICATION:</h2>
@@ -273,6 +277,7 @@ double degreTOrad(double degre){   //degre to radyan for rviz
 <p>You must install serial communication libraries before you run the application.</p>
 <p><a href="http://wiki.ros.org/serial">click here</a> to follow the directions.</p>
 <p> </p>
+```
 <pre class="lang:xhtml decode:true " title="CMakeList.txt">cmake_minimum_required(VERSION 2.8.3)
 project(lidar_package)
 
@@ -505,6 +510,7 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)</pre>
+```
 <h1>Please contact us for any incorrect information and suggestions.</h1>
 <h1>Do not forget !!! As information is shared, it multiplies.</h1>
 <h2>Thanks a lot to Ahmet KAĞIZMAN for his help.</h2>
