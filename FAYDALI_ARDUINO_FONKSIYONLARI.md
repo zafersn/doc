@@ -12,16 +12,17 @@
 #define degrees(rad) ((rad)*RAD_TO_DEG)
 #define sq(x) ((x)*(x))
 
+#define MAKEint(a, b)      ((unsigned short)(((unsigned char)(((unsigned long)(a)) & 0xff)) | ((unsigned short)((unsigned char)(((unsigned long)(b)) & 0xff))) << 8))
+#define MAKEDint(a, b)     ((unsigned long)(((unsigned short)(((unsigned long)(a)) & 0xffff)) | ((unsigned long)((unsigned short)(((unsigned long)(b)) & 0xffff))) << 16))
+
+#define LOWint(l)           ((unsigned short)(((unsigned long)(l)) & 0xffff))
+#define HIGHint(l)           ((unsigned short)((((unsigned long)(l)) >> 16) & 0xffff))
+
+#define LOWBYTE(w)           ((unsigned char)(((unsigned short)(w)) & 0xff))
+#define HIGHBYTE(w)           ((unsigned char)((((unsigned short)(w)) >> 8) & 0xff))
 
 #define lowByte(w) ((uint8_t) ((w) & 0xff))
 #define highByte(w) ((uint8_t) ((w) >> 8))
-
-#define MAKEint(a, b)      ((unsigned short)(((unsigned char)(((unsigned long)(a)) & 0xff)) | ((unsigned short)((unsigned char)(((unsigned long)(b)) & 0xff))) << 8))
-#define MAKEDint(a, b)     ((unsigned long)(((unsigned short)(((unsigned long)(a)) & 0xffff)) | ((unsigned long)((unsigned short)(((unsigned long)(b)) & 0xffff))) << 16))
-#define LOWint(l)           ((unsigned short)(((unsigned long)(l)) & 0xffff))
-#define HIGHint(l)           ((unsigned short)((((unsigned long)(l)) >> 16) & 0xffff))
-#define LOWBYTE(w)           ((unsigned char)(((unsigned short)(w)) & 0xff))
-#define HIGHBYTE(w)           ((unsigned char)((((unsigned short)(w)) >> 8) & 0xff))
 
 #define bitRead(value, bit) (((value) >> (bit)) & 0x01)
 #define bitSet(value, bit) ((value) |= (1UL << (bit)))
