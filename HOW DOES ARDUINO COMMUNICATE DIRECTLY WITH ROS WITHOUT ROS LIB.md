@@ -7,7 +7,9 @@
 <p> </p>
 <p> </p>
 <h2>WIRING DIAGRAM:</h2>
-<p><a href="https://github.com/zafersn/doc/blob/master/img/how-does-arduino-communicate-directly-with-ros.png"><img class="aligncenter size-large wp-image-1514" src="http://stackcuriosity.com/wp-content/uploads/2017/12/fritzing-1024x704.png" alt="" width="1024" height="704" /></a></p>
+
+![logo](https://github.com/zafersn/doc/blob/master/img/how-does-arduino-communicate-directly-with-ros.png)
+
 <h2>ARDUINO CODE:</h2>
 
 ```
